@@ -1,7 +1,7 @@
 # Directories
 .idea/
 .vs/
-.vscode/
+.vscode/*
 .pytest_cache/
 __pycache__/
 build/
@@ -14,6 +14,9 @@ tmp/
 *.ipr
 *.ids
 *.spec
-.env
 CMakeUserPresets.json
 CMakeSettings.json
+
+# Not Files
+!src/test/resources/.vscode/settings.json
+!src/test/resources/.vscode/launch.json

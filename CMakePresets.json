@@ -1,0 +1,159 @@
+{
+    "version": 3,
+    "cmakeMinimumRequired": {
+        "major": 3,
+        "minor": 25
+    },
+    "configurePresets": [
+        {
+            "name": "default",
+            "hidden": true,
+            "cacheVariables": {
+                "PRESET_NAME": {
+                    "type": "STRING",
+                    "value": "${presetName}"
+                }
+            }
+        },
+        {
+            "name": "windows",
+            "hidden": true,
+            "cmakeExecutable": "cmake.exe",
+            "cacheVariables": {
+                "PYTHON_ENV_REL_PATH": {
+                    "type": "STRING",
+                    "value": "Scripts/python.exe"
+                }
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Windows"
+            }
+        },
+        {
+            "name": "linux",
+            "hidden": true,
+            "cmakeExecutable": "cmake",
+            "cacheVariables": {
+                "PYTHON_ENV_REL_PATH": {
+                    "type": "STRING",
+                    "value": "bin/python"
+                }
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Linux"
+            }
+        },
+        {
+            "name": "darwin",
+            "hidden": true,
+            "cmakeExecutable": "cmake",
+            "cacheVariables": {
+                "PYTHON_ENV_REL_PATH": {
+                    "type": "STRING",
+                    "value": "bin/python"
+                }
+            },
+            "condition": {
+                "type": "equals",
+                "lhs": "${hostSystemName}",
+                "rhs": "Darwin"
+            }
+        },
+        {
+            "name": "ninja",
+            "hidden": true,
+            "generator": "Ninja"
+        },
+        {
+            "name": "python",
+            "hidden": true,
+            "cacheVariables": {
+                "MAIN_ENV_REL_PATH": {
+                    "type": "STRING",
+                    "value": "main/env"
+                },
+                "TEST_ENV_REL_PATH": {
+                    "type": "STRING",
+                    "value": "test/env"
+                }
+            }
+        },
+
+        {
+            "name": "windows.ninja.python",
+            "inherits": ["default", "windows", "ninja", "python"],
+            "binaryDir": "${sourceDir}/build"
+        },
+        {
+            "name": "linux.ninja.python",
+            "inherits": ["default", "linux", "ninja", "python"],
+            "binaryDir": "${sourceDir}/build"
+        },
+        {
+            "name": "darwin.ninja.python",
+            "inherits": ["default", "darwin", "ninja", "python"],
+            "binaryDir": "${sourceDir}/build"
+        }
+    ],
+    "buildPresets": [
+        {
+            "name": "default",
+            "hidden": true,
+            "jobs": 4
+        },
+        {
+            "name": "windows.ninja.python",
+            "configurePreset": "windows.ninja.python",
+            "inherits": ["default"]
+        },
+        {
+            "name": "linux.ninja.python",
+            "configurePreset": "linux.ninja.python",
+            "inherits": ["default"]
+        },
+        {
+            "name": "darwin.ninja.python",
+            "configurePreset": "darwin.ninja.python",
+            "inherits": ["default"]
+        }
+    ],
+    "testPresets": [
+        {
+            "name": "default",
+            "hidden": true,
+            "output": {
+                "verbosity": "verbose",
+                "outputOnFailure": true
+            },
+            "filter": {
+                "exclude": {
+                    "name": "(UiTestsA.test1)|(UiTestsB.test1)|(UiTestsC.test1)|(UiTestsD.test1)|(UiTestsE.test1)"
+                }
+            },
+            "execution": {
+                "noTestsAction": "error",
+                "stopOnFailure": true,
+                "timeout": 120
+            }
+        },
+        {
+            "name": "windows.ninja.python",
+            "configurePreset": "windows.ninja.python",
+            "inherits": ["default"]
+        },
+        {
+            "name": "linux.ninja.python",
+            "configurePreset": "linux.ninja.python",
+            "inherits": ["default"]
+        },
+        {
+            "name": "darwin.ninja.python",
+            "configurePreset": "darwin.ninja.python",
+            "inherits": ["default"]
+        }
+    ]
+}

@@ -1,0 +1,20 @@
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[project]
+name = "exqudens-pytest"
+version = "7.3.1"
+description = "Exqudens PyTest Application"
+requires-python = ">=3"
+dependencies = [
+    "pytest==7.3.1", # latest: 8.3.4
+    "stdlib-list==0.11.0",
+    "pyinstaller==6.11.1"
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest==7.3.1",
+    "pylint==3.3.2"
+]

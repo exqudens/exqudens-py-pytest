@@ -1,0 +1,27 @@
+[build-system]
+requires = ["pdm-backend"]
+build-backend = "pdm.backend"
+
+[project]
+name = "exqudens-pytest"
+dynamic = ["version"]
+description = "Exqudens PyTest Application"
+requires-python = ">=3"
+dependencies = [
+    "pytest==8.3.4",
+    "pyinstaller==6.11.1"
+]
+
+[project.optional-dependencies]
+test = [
+    "pytest==8.3.4",
+    "pylint==3.3.2"
+]
+
+#[tool.pdm.version]
+#source = "file"
+#path = "src/main/py/main.py"
+
+#[tool.pdm.build]
+#includes = ["src/main/py"]
+#package-dir = "src/main/py"

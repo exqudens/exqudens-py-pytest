@@ -1,0 +1,62 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "test-debug",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "python": "@launch.configurations.test.python@",
+            "module": "pytest",
+            "env": {
+                "PYTHONPATH": "src/main/py${/}src/test/py"
+            },
+            "args": [
+                "--cache-clear",
+                "-s",
+                "-rA",
+
+                "--log-level=@launch.configurations.pytest.log-level@",
+                "--log-cli-level=@launch.configurations.pytest.log-level@",
+                "--log-file-level=@launch.configurations.pytest.log-level@",
+
+                "--log-format=@launch.configurations.pytest.log-format@",
+                "--log-cli-format=@launch.configurations.pytest.log-format@",
+                "--log-file-format=@launch.configurations.pytest.log-format@",
+
+                "--log-date-format=@launch.configurations.pytest.log-date-format@",
+                "--log-cli-date-format=@launch.configurations.pytest.log-date-format@",
+                "--log-file-date-format=@launch.configurations.pytest.log-date-format@",
+
+                "--log-file=@launch.configurations.pytest.log-file@",
+                "--junit-xml=@launch.configurations.pytest.log-file@",
+                "-o",
+                "junit_family=xunit1",
+                "--rootdir=${workspaceFolder}",
+                "${input:pick-test}"
+            ]
+        },
+        {
+            "name": "main-debug",
+            "type": "debugpy",
+            "request": "launch",
+            "console": "internalConsole",
+            "cwd": "${workspaceFolder}",
+            "python": "@launch.configurations.main.python@",
+            "program": "src/main/py/main.py",
+            "args": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "pick-test",
+            "description": "Select Test Entry",
+            "type": "pickString",
+            "default": "@launch.inputs.default@",
+            "options": [
+                "@launch.inputs.pytest.collect.items@"
+            ]
+        }
+    ]
+}
