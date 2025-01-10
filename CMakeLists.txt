@@ -35,8 +35,8 @@ message(STATUS "TEST_PYTHON_FILE: '${TEST_PYTHON_FILE}'")
 add_custom_command(
     OUTPUT "${MAIN_PYTHON_FILE}"
     COMMAND "${PYTHON_COMMAND}" "-m" "venv" "--copies" "${PROJECT_BINARY_DIR}/${MAIN_ENV_REL_PATH}"
-    COMMAND "${MAIN_PYTHON_FILE}" "-m" "pip" "download" "-d" "${PROJECT_BINARY_DIR}/${MAIN_ENV_REL_PATH}/dependencies" ".[app]"
-    #COMMAND "${MAIN_PYTHON_FILE}" "-m" "pip" "uninstall" "-y" "${PROJECT_NAME}"
+    COMMAND "${MAIN_PYTHON_FILE}" "-m" "pip" "install" ".[app]"
+    COMMAND "${MAIN_PYTHON_FILE}" "-m" "pip" "uninstall" "-y" "${PROJECT_NAME}"
     COMMENT "main env create"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     USES_TERMINAL
@@ -50,8 +50,8 @@ add_custom_target("main-env"
 add_custom_command(
     OUTPUT "${TEST_PYTHON_FILE}"
     COMMAND "${PYTHON_COMMAND}" "-m" "venv" "--copies" "${PROJECT_BINARY_DIR}/${TEST_ENV_REL_PATH}"
-    COMMAND "${TEST_PYTHON_FILE}" "-m" "pip" "download" "-d" "${PROJECT_BINARY_DIR}/${TEST_ENV_REL_PATH}/dependencies" ".[test]"
-    #COMMAND "${MAIN_PYTHON_FILE}" "-m" "pip" "uninstall" "-y" "${PROJECT_NAME}"
+    COMMAND "${TEST_PYTHON_FILE}" "-m" "pip" "install" ".[test]"
+    COMMAND "${MAIN_PYTHON_FILE}" "-m" "pip" "uninstall" "-y" "${PROJECT_NAME}"
     COMMENT "test env create"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     USES_TERMINAL
