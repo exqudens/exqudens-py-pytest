@@ -1,8 +1,8 @@
 """
-main module.
+exqudens_pytest module.
 """
 
-__version__ = "1.0.0"
+__version__ = "7.3.1"
 
 import sys
 

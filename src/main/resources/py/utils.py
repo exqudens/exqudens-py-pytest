@@ -91,6 +91,8 @@ class Utils:
         result: list[str] = []
 
         for v in Path(dir).rglob("**/*.py"):
+            if v.name.startswith("__") and v.name != "__init__.py":
+                continue
             result.append(v.as_posix())
 
         return result

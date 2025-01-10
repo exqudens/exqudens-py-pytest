@@ -13,7 +13,7 @@ string(REGEX REPLACE "name = \"(.+)\"" "\\1" NAME "${NAME}")
 string(STRIP "${NAME}" NAME)
 
 # get project version
-file(READ "${CMAKE_CURRENT_SOURCE_DIR}/src/main/py/main.py" CONTENT)
+file(READ "${CMAKE_CURRENT_SOURCE_DIR}/src/main/py/exqudens/pytest/__init__.py" CONTENT)
 string(REGEX MATCH "__version__ = \"[0-9.]+\"" VERSION "${CONTENT}")
 string(REGEX REPLACE "__version__ = \"(.+)\"" "\\1" VERSION "${VERSION}")
 string(STRIP "${VERSION}" VERSION)
@@ -35,7 +35,8 @@ message(STATUS "TEST_PYTHON_FILE: '${TEST_PYTHON_FILE}'")
 add_custom_command(
     OUTPUT "${MAIN_PYTHON_FILE}"
     COMMAND "${PYTHON_COMMAND}" "-m" "venv" "--copies" "${PROJECT_BINARY_DIR}/${MAIN_ENV_REL_PATH}"
-    COMMAND "${MAIN_PYTHON_FILE}" "-m" "pip" "install" "."
+    COMMAND "${MAIN_PYTHON_FILE}" "-m" "pip" "install" ".[app]"
+    COMMAND "${MAIN_PYTHON_FILE}" "-m" "pip" "uninstall" "-y" "${PROJECT_NAME}"
     COMMENT "main env create"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     USES_TERMINAL
@@ -46,27 +47,15 @@ add_custom_command(
     OUTPUT "${TEST_PYTHON_FILE}"
     COMMAND "${PYTHON_COMMAND}" "-m" "venv" "--copies" "${PROJECT_BINARY_DIR}/${TEST_ENV_REL_PATH}"
     COMMAND "${TEST_PYTHON_FILE}" "-m" "pip" "install" ".[test]"
+    COMMAND "${MAIN_PYTHON_FILE}" "-m" "pip" "uninstall" "-y" "${PROJECT_NAME}"
     COMMENT "test env create"
     WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
     USES_TERMINAL
     VERBATIM
 )
 
-add_custom_target("build-main"
-    COMMAND "${CMAKE_COMMAND}" "-E" "rm" "-rf" "${PROJECT_BINARY_DIR}/main/work"
-    COMMAND "${CMAKE_COMMAND}" "-E" "rm" "-rf" "${PROJECT_SOURCE_DIR}/dist/exqudens-pytest"
-    COMMAND "${CMAKE_COMMAND}" "-E" "rm" "-f" "exqudens-pytest.spec"
-    COMMAND "${CMAKE_COMMAND}" "-E" "copy" "src/main/resources/spec/exqudens_pytest_spec.py" "${PROJECT_SOURCE_DIR}"
-    COMMAND "${CMAKE_COMMAND}" "-E" "rename" "exqudens_pytest_spec.py" "exqudens-pytest.spec"
-    COMMAND "${MAIN_PYTHON_FILE}" "-m" "PyInstaller" "--clean" "--workpath" "${PROJECT_BINARY_DIR}/main/work" "--distpath" "${PROJECT_SOURCE_DIR}/dist" "${PROJECT_SOURCE_DIR}/exqudens-pytest.spec"
-    DEPENDS "${MAIN_PYTHON_FILE}"
-    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
-    USES_TERMINAL
-    VERBATIM
-)
-
 add_custom_target("vscode"
-    COMMAND "${CMAKE_COMMAND}" "-P" "${PROJECT_SOURCE_DIR}/cmake/util.cmake" "--" "vscode"
+    COMMAND "${CMAKE_COMMAND}" "-P" "${PROJECT_SOURCE_DIR}/cmake/vscode.cmake" "--" "vscode"
             PROJECT_SOURCE_DIR "${PROJECT_SOURCE_DIR}"
             PROJECT_BINARY_DIR "${PROJECT_BINARY_DIR}"
 
@@ -95,9 +84,34 @@ add_custom_target("vscode"
     USES_TERMINAL
 )
 
+add_custom_target("main-build"
+    COMMAND "${CMAKE_COMMAND}" "-E" "rm" "-f" "${PROJECT_BINARY_DIR}/main/dist/*.whl"
+    COMMAND "${MAIN_PYTHON_FILE}" "-m" "pip" "wheel" "--no-deps" "-w" "${PROJECT_BINARY_DIR}/main/dist" "."
+    DEPENDS "${MAIN_PYTHON_FILE}"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    USES_TERMINAL
+    VERBATIM
+)
+
+add_custom_target("main-build-app"
+    COMMAND "${CMAKE_COMMAND}" "-E" "rm" "-rf" "${PROJECT_BINARY_DIR}/main/work"
+    COMMAND "${CMAKE_COMMAND}" "-E" "rm" "-rf" "${PROJECT_BINARY_DIR}/main/dist/exqudens-pytest"
+    COMMAND "${CMAKE_COMMAND}" "-E" "rm" "-f" "${PROJECT_SOURCE_DIR}/exqudens_pytest_spec.py"
+    COMMAND "${CMAKE_COMMAND}" "-E" "rm" "-f" "${PROJECT_SOURCE_DIR}/exqudens-pytest.spec"
+    COMMAND "${CMAKE_COMMAND}" "-E" "copy" "src/main/resources/spec/exqudens_pytest_spec.py" "${PROJECT_SOURCE_DIR}"
+    COMMAND "${CMAKE_COMMAND}" "-E" "rename" "exqudens_pytest_spec.py" "exqudens-pytest.spec"
+    COMMAND "${MAIN_PYTHON_FILE}" "-m" "PyInstaller" "--clean" "--workpath" "${PROJECT_BINARY_DIR}/main/work" "--distpath" "${PROJECT_BINARY_DIR}/main/dist" "${PROJECT_SOURCE_DIR}/exqudens-pytest.spec"
+    DEPENDS "${MAIN_PYTHON_FILE}"
+    WORKING_DIRECTORY "${PROJECT_SOURCE_DIR}"
+    USES_TERMINAL
+    VERBATIM
+)
+
 set("${PROJECT_NAME}_ADDITIONAL_CLEAN_FILES"
     "${PROJECT_BINARY_DIR}/main"
     "${PROJECT_BINARY_DIR}/test"
+    "${PROJECT_SOURCE_DIR}/exqudens_pytest_spec.py"
+    "${PROJECT_SOURCE_DIR}/exqudens-pytest.spec"
 )
 set_directory_properties(PROPERTIES
     ADDITIONAL_CLEAN_FILES "${${PROJECT_NAME}_ADDITIONAL_CLEAN_FILES}"

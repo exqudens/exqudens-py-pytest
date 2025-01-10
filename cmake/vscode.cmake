@@ -234,7 +234,7 @@ function(vscode)
     endif()
 
     execute_process(
-        COMMAND "${testPythonFile}" "-m" "pytest" "-q" "--co" "--conftest-collect-file=${projectBinaryDir}/test/tests.json"
+        COMMAND "${testPythonFile}" "-m" "pytest" "-q" "--co" "--rootdir=${testPyDir}" "--conftest-collect-file=${projectBinaryDir}/test/tests.json" "${testPyDir}"
         WORKING_DIRECTORY "${projectSourceDir}"
         COMMAND_ECHO "STDOUT"
         COMMAND_ERROR_IS_FATAL "ANY"
@@ -244,17 +244,16 @@ function(vscode)
         message(FATAL_ERROR "not exists: '${projectBinaryDir}/test/tests.json'")
     endif()
 
-    cmake_path(RELATIVE_PATH "testPyDir" BASE_DIRECTORY "${projectSourceDir}" OUTPUT_VARIABLE "pytestCollectItems")
+    set("launch.inputs.default" "${testPyDir}")
 
-    set("launch.inputs.default" "${pytestCollectItems}")
-
+    set(pytestCollectItems "${testPyDir}")
     file(READ "${projectBinaryDir}/test/tests.json" json_content)
     string(JSON "maxIndex" LENGTH "${json_content}")
     if("${maxIndex}" GREATER "0")
         math(EXPR maxIndex "${maxIndex} - 1")
         foreach(i RANGE "0" "${maxIndex}")
             string(JSON v GET "${json_content}" "${i}" "nodeid")
-            list(APPEND "pytestCollectItems" "${v}")
+            list(APPEND "pytestCollectItems" "${testPyDir}/${v}")
         endforeach()
     endif()
     string(JOIN "\",\n                \"" "pytestCollectItems" ${pytestCollectItems})
