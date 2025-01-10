@@ -44,7 +44,7 @@
             "console": "internalConsole",
             "cwd": "${workspaceFolder}",
             "python": "@launch.configurations.main.python@",
-            "program": "src/main/py/main.py",
+            "program": "src/main/py/exqudens/pytest/__init__.py",
             "args": []
         }
     ],
