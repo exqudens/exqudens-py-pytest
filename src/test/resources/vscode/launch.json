@@ -1,0 +1,65 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "test-debug",
+            "type": "debugpy",
+            "request": "launch",
+            "cwd": "${workspaceFolder}",
+            "console": "internalConsole",
+            "python": "${workspaceFolder}/build/test/env/Scripts/python.exe",
+            "module": "pytest",
+            "env": {
+                "PYTHONPATH": "src/test/py"
+            },
+            "args": [
+                "--cache-clear",
+                "-s",
+                "-rA",
+
+                "--log-level=@test.log-level@",
+                "--log-cli-level=@test.log-level@",
+                "--log-file-level=@test.log-level@",
+
+                "--log-format=@test.log-format@",
+                "--log-cli-format=@test.log-format@",
+                "--log-file-format=@test.log-format@",
+
+                "--log-date-format=@test.log-date-format@",
+                "--log-cli-date-format=@test.log-date-format@",
+                "--log-file-date-format=@test.log-date-format@",
+
+                "--log-file=@test.log-file@",
+                "--junit-xml=@test.junit-file@",
+                "-o",
+                "junit_family=xunit1",
+                "--rootdir=${workspaceFolder}/@test.dir-rel@",
+                "${input:pick-test}"
+            ]
+        },
+        {
+            "name": "main-debug",
+            "type": "debugpy",
+            "request": "launch",
+            "console": "internalConsole",
+            "cwd": "${workspaceFolder}",
+            "python": "build/main/env/Scripts/python.exe",
+            "program": "src/main/py/exqudens/pytest/__init__.py",
+            "env": {
+                "PYTHONPATH": "src/main/py"
+            },
+            "args": []
+        }
+    ],
+    "inputs": [
+        {
+            "id": "pick-test",
+            "description": "Select Test Entry",
+            "type": "pickString",
+            "default": "@test.default-entry@",
+            "options": [
+                "@test.entries@"
+            ]
+        }
+    ]
+}

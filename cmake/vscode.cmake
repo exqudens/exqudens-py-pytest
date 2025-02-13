@@ -16,20 +16,20 @@ endif()
 function(vscode)
     set(options)
     set(oneValueKeywords
-        "PROJECT_SOURCE_DIR"
-        "PROJECT_BINARY_DIR"
+        "SOURCE_DIR"
+        "BINARY_DIR"
 
-        "MAIN_PYTHON_FILE"
+        "MAIN_PYTHON_COMMAND"
         "MAIN_PY_DIR"
 
-        "TEST_PYTHON_FILE"
+        "TEST_PYTHON_COMMAND"
         "TEST_PY_DIR"
 
-        "PYTEST_LOG_LEVEL"
-        "PYTEST_LOG_FORMAT"
-        "PYTEST_LOG_DATE_FORMAT"
-        "PYTEST_LOG_FILE"
-        "PYTEST_JUNIT_FILE"
+        "TEST_LOG_LEVEL"
+        "TEST_LOG_FORMAT"
+        "TEST_LOG_DATE_FORMAT"
+        "TEST_LOG_FILE"
+        "TEST_JUNIT_FILE"
 
         "SETTINGS_GENERATE"
         "SETTINGS_TEMPLATE_FILE"
@@ -40,254 +40,187 @@ function(vscode)
         "LAUNCH_TEMPLATE_FILE"
         "LAUNCH_FILE"
         "LAUNCH_FILE_OVERWRITE"
+        "LAUNCH_TEST_LIST_FILE"
     )
     set(multiValueKeywords)
 
-    cmake_parse_arguments("${CMAKE_CURRENT_FUNCTION}" "${options}" "${oneValueKeywords}" "${multiValueKeywords}" "${ARGN}")
+    foreach(v IN LISTS "options" "oneValueKeywords" "multiValueKeywords")
+        unset("_${v}")
+    endforeach()
 
-    if(NOT "${${CMAKE_CURRENT_FUNCTION}_UNPARSED_ARGUMENTS}" STREQUAL "")
-        message(FATAL_ERROR "Unparsed arguments: '${${CMAKE_CURRENT_FUNCTION}_UNPARSED_ARGUMENTS}'")
+    cmake_parse_arguments("" "${options}" "${oneValueKeywords}" "${multiValueKeywords}" "${ARGN}")
+
+    if(NOT "${_UNPARSED_ARGUMENTS}" STREQUAL "")
+        message(FATAL_ERROR ": '${_UNPARSED_ARGUMENTS}'")
     endif()
 
-    if("${${CMAKE_CURRENT_FUNCTION}_PROJECT_SOURCE_DIR}" STREQUAL "")
-        message(FATAL_ERROR "'PROJECT_SOURCE_DIR' is empty")
-    else()
-        if(NOT EXISTS "${${CMAKE_CURRENT_FUNCTION}_PROJECT_SOURCE_DIR}")
-            message(FATAL_ERROR "not exists 'PROJECT_SOURCE_DIR': '${${CMAKE_CURRENT_FUNCTION}_PROJECT_SOURCE_DIR}'")
+    if("${_SOURCE_DIR}" STREQUAL "")
+        cmake_path(GET "CMAKE_CURRENT_LIST_DIR" PARENT_PATH "_SOURCE_DIR")
+    endif()
+
+    if("${_BINARY_DIR}" STREQUAL "")
+        set(_BINARY_DIR "${_SOURCE_DIR}/build")
+    endif()
+
+    if("${_MAIN_PYTHON_COMMAND}" STREQUAL "")
+        if(EXISTS "${_BINARY_DIR}/main/env/Scripts/python.exe")
+            set(_MAIN_PYTHON_COMMAND "${_BINARY_DIR}/main/env/Scripts/python.exe")
+        else()
+            set(_MAIN_PYTHON_COMMAND "${_BINARY_DIR}/main/env/bin/python")
         endif()
-        set(projectSourceDir "${${CMAKE_CURRENT_FUNCTION}_PROJECT_SOURCE_DIR}")
     endif()
 
-    if("${${CMAKE_CURRENT_FUNCTION}_PROJECT_BINARY_DIR}" STREQUAL "")
-        message(FATAL_ERROR "'PROJECT_BINARY_DIR' is empty")
-    else()
-        if(NOT EXISTS "${${CMAKE_CURRENT_FUNCTION}_PROJECT_BINARY_DIR}")
-            message(FATAL_ERROR "not exists 'PROJECT_BINARY_DIR': '${${CMAKE_CURRENT_FUNCTION}_PROJECT_BINARY_DIR}'")
+    if("${_MAIN_PY_DIR}" STREQUAL "")
+        set(_MAIN_PY_DIR "${_SOURCE_DIR}/src/main/py")
+    endif()
+
+    if("${_TEST_PYTHON_COMMAND}" STREQUAL "")
+        if(EXISTS "${_BINARY_DIR}/test/env/Scripts/python.exe")
+            set(_TEST_PYTHON_COMMAND "${_BINARY_DIR}/test/env/Scripts/python.exe")
+        else()
+            set(_TEST_PYTHON_COMMAND "${_BINARY_DIR}/test/env/bin/python")
         endif()
-        set(projectBinaryDir "${${CMAKE_CURRENT_FUNCTION}_PROJECT_BINARY_DIR}")
     endif()
 
-    if("${${CMAKE_CURRENT_FUNCTION}_MAIN_PYTHON_FILE}" STREQUAL "")
-        message(FATAL_ERROR "'MAIN_PYTHON_FILE' is empty")
-    else()
-        if(NOT EXISTS "${${CMAKE_CURRENT_FUNCTION}_MAIN_PYTHON_FILE}")
-            message(FATAL_ERROR "not exists 'MAIN_PYTHON_FILE': '${${CMAKE_CURRENT_FUNCTION}_MAIN_PYTHON_FILE}'")
-        endif()
-        set(mainPythonFile "${${CMAKE_CURRENT_FUNCTION}_MAIN_PYTHON_FILE}")
+    if("${_TEST_PY_DIR}" STREQUAL "")
+        set(_TEST_PY_DIR "${_SOURCE_DIR}/src/test/py")
     endif()
 
-    if("${${CMAKE_CURRENT_FUNCTION}_MAIN_PY_DIR}" STREQUAL "")
-        message(FATAL_ERROR "'MAIN_PY_DIR' is empty")
-    else()
-        if(NOT EXISTS "${${CMAKE_CURRENT_FUNCTION}_MAIN_PY_DIR}")
-            message(FATAL_ERROR "not exists 'MAIN_PY_DIR': '${${CMAKE_CURRENT_FUNCTION}_MAIN_PY_DIR}'")
-        endif()
-        set(mainPyDir "${${CMAKE_CURRENT_FUNCTION}_MAIN_PY_DIR}")
+    if("${_TEST_LOG_LEVEL}" STREQUAL "")
+        set(_TEST_LOG_LEVEL "DEBUG")
     endif()
 
-    if("${${CMAKE_CURRENT_FUNCTION}_TEST_PYTHON_FILE}" STREQUAL "")
-        message(FATAL_ERROR "'TEST_PYTHON_FILE' is empty")
-    else()
-        if(NOT EXISTS "${${CMAKE_CURRENT_FUNCTION}_TEST_PYTHON_FILE}")
-            message(FATAL_ERROR "not exists 'TEST_PYTHON_FILE': '${${CMAKE_CURRENT_FUNCTION}_TEST_PYTHON_FILE}'")
-        endif()
-        set(testPythonFile "${${CMAKE_CURRENT_FUNCTION}_TEST_PYTHON_FILE}")
+    if("${_TEST_LOG_FORMAT}" STREQUAL "")
+        set(_TEST_LOG_FORMAT "%(levelname).4s %(asctime)s.%(msecs)03d [%(threadName)s] (%(name)s:%(filename)s:%(lineno)d) [%(funcName)s]: %(message)s")
     endif()
 
-    if("${${CMAKE_CURRENT_FUNCTION}_TEST_PY_DIR}" STREQUAL "")
-        message(FATAL_ERROR "'TEST_PY_DIR' is empty")
-    else()
-        if(NOT EXISTS "${${CMAKE_CURRENT_FUNCTION}_TEST_PY_DIR}")
-            message(FATAL_ERROR "not exists 'TEST_PY_DIR': '${${CMAKE_CURRENT_FUNCTION}_TEST_PY_DIR}'")
-        endif()
-        set(testPyDir "${${CMAKE_CURRENT_FUNCTION}_TEST_PY_DIR}")
+    if("${_TEST_LOG_DATE_FORMAT}" STREQUAL "")
+        set(_TEST_LOG_DATE_FORMAT "%Y-%n-%d %H:%M:%S")
     endif()
 
-    if("${${CMAKE_CURRENT_FUNCTION}_PYTEST_LOG_LEVEL}" STREQUAL "")
-        message(FATAL_ERROR "'PYTEST_LOG_LEVEL' is empty")
-    else()
-        set(pytestLogLevel "${${CMAKE_CURRENT_FUNCTION}_PYTEST_LOG_LEVEL}")
+    if("${_TEST_LOG_FILE}" STREQUAL "")
+        set(_TEST_LOG_FILE "${_BINARY_DIR}/test/log/txt/log.txt")
     endif()
 
-    if("${${CMAKE_CURRENT_FUNCTION}_PYTEST_LOG_FORMAT}" STREQUAL "")
-        message(FATAL_ERROR "'PYTEST_LOG_FORMAT' is empty")
-    else()
-        set(pytestLogFormat "${${CMAKE_CURRENT_FUNCTION}_PYTEST_LOG_FORMAT}")
+    if("${_TEST_JUNIT_FILE}" STREQUAL "")
+        set(_TEST_JUNIT_FILE "${_BINARY_DIR}/test/report/xml/report.xml")
     endif()
 
-    if("${${CMAKE_CURRENT_FUNCTION}_PYTEST_LOG_DATE_FORMAT}" STREQUAL "")
-        message(FATAL_ERROR "'PYTEST_LOG_DATE_FORMAT' is empty")
-    else()
-        set(pytestLogDateFormat "${${CMAKE_CURRENT_FUNCTION}_PYTEST_LOG_DATE_FORMAT}")
+    if("${_SETTINGS_GENERATE}" STREQUAL "")
+        set(_SETTINGS_GENERATE "true")
     endif()
 
-    if("${${CMAKE_CURRENT_FUNCTION}_PYTEST_LOG_FILE}" STREQUAL "")
-        message(FATAL_ERROR "'PYTEST_LOG_FILE' is empty")
-    else()
-        set(pytestLogFile "${${CMAKE_CURRENT_FUNCTION}_PYTEST_LOG_FILE}")
+    if("${_SETTINGS_TEMPLATE_FILE}" STREQUAL "")
+        set(_SETTINGS_TEMPLATE_FILE "${_SOURCE_DIR}/src/test/resources/vscode/settings.json")
     endif()
 
-    if("${${CMAKE_CURRENT_FUNCTION}_PYTEST_JUNIT_FILE}" STREQUAL "")
-        message(FATAL_ERROR "'PYTEST_JUNIT_FILE' is empty")
-    else()
-        set(pytestJunitFile "${${CMAKE_CURRENT_FUNCTION}_PYTEST_JUNIT_FILE}")
+    if("${_SETTINGS_FILE}" STREQUAL "")
+        set(_SETTINGS_FILE "${_SOURCE_DIR}/.vscode/settings.json")
     endif()
 
-    if("${${CMAKE_CURRENT_FUNCTION}_SETTINGS_GENERATE}" STREQUAL "")
-        set(settingsGenerate "false")
-    else()
-        set(settingsGenerate "${${CMAKE_CURRENT_FUNCTION}_SETTINGS_GENERATE}")
+    if("${_SETTINGS_FILE_OVERWRITE}" STREQUAL "")
+        set(_SETTINGS_FILE_OVERWRITE "true")
     endif()
 
-    if("${settingsGenerate}" AND "${${CMAKE_CURRENT_FUNCTION}_SETTINGS_TEMPLATE_FILE}" STREQUAL "")
-        message(FATAL_ERROR "'SETTINGS_TEMPLATE_FILE' is empty")
-    else()
-        if("${settingsGenerate}" AND NOT EXISTS "${${CMAKE_CURRENT_FUNCTION}_SETTINGS_TEMPLATE_FILE}")
-            message(FATAL_ERROR "not exists 'SETTINGS_TEMPLATE_FILE': '${${CMAKE_CURRENT_FUNCTION}_SETTINGS_TEMPLATE_FILE}'")
-        endif()
-        set(settingsTemplateFile "${${CMAKE_CURRENT_FUNCTION}_SETTINGS_TEMPLATE_FILE}")
+    if("${_LAUNCH_GENERATE}" STREQUAL "")
+        set(_LAUNCH_GENERATE "true")
     endif()
 
-    if("${${CMAKE_CURRENT_FUNCTION}_SETTINGS_FILE}" STREQUAL "")
-        set(settingsFile "${projectSourceDir}/.vscode/settings.json")
-    else()
-        set(settingsFile "${${CMAKE_CURRENT_FUNCTION}_SETTINGS_FILE}")
+    if("${_LAUNCH_TEMPLATE_FILE}" STREQUAL "")
+        set(_LAUNCH_TEMPLATE_FILE "${_SOURCE_DIR}/src/test/resources/vscode/launch.json")
     endif()
 
-    if("${${CMAKE_CURRENT_FUNCTION}_SETTINGS_FILE_OVERWRITE}" STREQUAL "")
-        set(settingsFileOverwrite "false")
-    else()
-        set(settingsFileOverwrite "${${CMAKE_CURRENT_FUNCTION}_SETTINGS_FILE_OVERWRITE}")
+    if("${_LAUNCH_FILE}" STREQUAL "")
+        set(_LAUNCH_FILE "${_SOURCE_DIR}/.vscode/launch.json")
     endif()
 
-    if("${${CMAKE_CURRENT_FUNCTION}_LAUNCH_GENERATE}" STREQUAL "")
-        set(launchGenerate "false")
-    else()
-        set(launchGenerate "${${CMAKE_CURRENT_FUNCTION}_LAUNCH_GENERATE}")
+    if("${_LAUNCH_FILE_OVERWRITE}" STREQUAL "")
+        set(_LAUNCH_FILE_OVERWRITE "true")
     endif()
 
-    if("${launchGenerate}" AND "${${CMAKE_CURRENT_FUNCTION}_LAUNCH_TEMPLATE_FILE}" STREQUAL "")
-        message(FATAL_ERROR "'LAUNCH_TEMPLATE_FILE' is empty")
-    else()
-        if("${launchGenerate}" AND NOT EXISTS "${${CMAKE_CURRENT_FUNCTION}_LAUNCH_TEMPLATE_FILE}")
-            message(FATAL_ERROR "not exists 'LAUNCH_TEMPLATE_FILE': '${${CMAKE_CURRENT_FUNCTION}_LAUNCH_TEMPLATE_FILE}'")
-        endif()
-        set(launchTemplateFile "${${CMAKE_CURRENT_FUNCTION}_LAUNCH_TEMPLATE_FILE}")
+    if("${_LAUNCH_TEST_LIST_FILE}" STREQUAL "")
+        set(_LAUNCH_TEST_LIST_FILE "${_BINARY_DIR}/test/test-list.json")
     endif()
 
-    if("${${CMAKE_CURRENT_FUNCTION}_LAUNCH_FILE}" STREQUAL "")
-        set(launchFile "${projectSourceDir}/.vscode/launch.json")
-    else()
-        set(launchFile "${${CMAKE_CURRENT_FUNCTION}_LAUNCH_FILE}")
-    endif()
+    message(STATUS "input:")
+    foreach(v IN LISTS "options" "oneValueKeywords" "multiValueKeywords")
+        message(STATUS "${v}: '${_${v}}'")
+    endforeach()
 
-    if("${${CMAKE_CURRENT_FUNCTION}_LAUNCH_FILE_OVERWRITE}" STREQUAL "")
-        set(launchFileOverwrite "false")
-    else()
-        set(launchFileOverwrite "${${CMAKE_CURRENT_FUNCTION}_LAUNCH_FILE_OVERWRITE}")
-    endif()
+    set(checkNotEmptyVarNames
+        "TEST_LOG_LEVEL"
+        "TEST_LOG_FORMAT"
+        "TEST_LOG_DATE_FORMAT"
+        "TEST_LOG_FILE"
+        "TEST_JUNIT_FILE"
 
-    message(STATUS "==================================================")
-    message(STATUS "resolved variables")
-    message(STATUS "==================================================")
-    message(STATUS "projectSourceDir: '${projectSourceDir}'")
-    message(STATUS "projectBinaryDir: '${projectBinaryDir}'")
-    message(STATUS "mainPythonFile: '${mainPythonFile}'")
-    message(STATUS "mainPyDir: '${mainPyDir}'")
-    message(STATUS "testPythonFile: '${testPythonFile}'")
-    message(STATUS "testPyDir: '${testPyDir}'")
-    message(STATUS "pytestLogLevel: '${pytestLogLevel}'")
-    message(STATUS "pytestLogFormat: '${pytestLogFormat}'")
-    message(STATUS "pytestLogDateFormat: '${pytestLogDateFormat}'")
-    message(STATUS "pytestLogFile: '${pytestLogFile}'")
-    message(STATUS "pytestJunitFile: '${pytestJunitFile}'")
-    message(STATUS "settingsGenerate: '${settingsGenerate}'")
-    message(STATUS "settingsTemplateFile: '${settingsTemplateFile}'")
-    message(STATUS "settingsFile: '${settingsFile}'")
-    message(STATUS "settingsFileOverwrite: '${settingsFileOverwrite}'")
-    message(STATUS "launchGenerate: '${launchGenerate}'")
-    message(STATUS "launchTemplateFile: '${launchTemplateFile}'")
-    message(STATUS "launchFile: '${launchFile}'")
-    message(STATUS "launchFileOverwrite: '${launchFileOverwrite}'")
+        "SETTINGS_GENERATE"
+        "SETTINGS_FILE_OVERWRITE"
+        "SETTINGS_FILE"
 
-    cmake_path(RELATIVE_PATH "testPythonFile" BASE_DIRECTORY "${projectSourceDir}" OUTPUT_VARIABLE "testPythonFileRel")
-    set("settings.python.defaultInterpreterPath" "\${workspaceFolder}/${testPythonFileRel}") # "\${command:python.interpreterPath}"
-
-    cmake_path(RELATIVE_PATH "mainPythonFile" BASE_DIRECTORY "${projectSourceDir}" OUTPUT_VARIABLE "mainPythonFileRel")
-    set("launch.configurations.main.python" "\${workspaceFolder}/${mainPythonFileRel}")
-
-    cmake_path(RELATIVE_PATH "testPythonFile" BASE_DIRECTORY "${projectSourceDir}" OUTPUT_VARIABLE "testPythonFileRel")
-    set("launch.configurations.test.python" "\${workspaceFolder}/${testPythonFileRel}")
-
-    set("launch.configurations.pytest.log-level" "${pytestLogLevel}")
-    set("launch.configurations.pytest.log-format" "${pytestLogFormat}")
-    set("launch.configurations.pytest.log-date-format" "${pytestLogDateFormat}")
-
-    cmake_path(RELATIVE_PATH "pytestLogFile" BASE_DIRECTORY "${projectSourceDir}" OUTPUT_VARIABLE "pytestLogFileRel")
-    set("launch.configurations.pytest.log-file" "\${workspaceFolder}/${pytestLogFileRel}")
-
-    cmake_path(RELATIVE_PATH "pytestJunitFile" BASE_DIRECTORY "${projectSourceDir}" OUTPUT_VARIABLE "pytestJunitFileRel")
-    set("launch.configurations.pytest.junit-xml" "\${workspaceFolder}/${pytestJunitFileRel}")
-
-    if(EXISTS "${projectBinaryDir}/test/tests.json")
-        file(REMOVE "${projectBinaryDir}/test/tests.json")
-    endif()
-
-    execute_process(
-        COMMAND "${testPythonFile}" "-m" "pytest" "-q" "--co" "--rootdir=${testPyDir}" "--conftest-collect-file=${projectBinaryDir}/test/tests.json" "${testPyDir}"
-        WORKING_DIRECTORY "${projectSourceDir}"
-        COMMAND_ECHO "STDOUT"
-        COMMAND_ERROR_IS_FATAL "ANY"
+        "LAUNCH_GENERATE"
+        "LAUNCH_FILE_OVERWRITE"
+        "LAUNCH_FILE"
     )
 
-    if(NOT EXISTS "${projectBinaryDir}/test/tests.json")
-        message(FATAL_ERROR "not exists: '${projectBinaryDir}/test/tests.json'")
-    endif()
+    foreach(v IN LISTS "checkNotEmptyVarNames")
+        if("${_${v}}" STREQUAL "")
+            message(FATAL_ERROR "Empty ${v}: '${_${v}}'")
+        endif()
+    endforeach()
 
-    set("launch.inputs.default" "${testPyDir}")
+    set(checkExistsVarNames ${options} ${oneValueKeywords} ${multiValueKeywords})
+    list(REMOVE_ITEM "checkExistsVarNames" ${checkNotEmptyVarNames})
 
-    set(pytestCollectItems "${testPyDir}")
-    file(READ "${projectBinaryDir}/test/tests.json" json_content)
-    string(JSON "maxIndex" LENGTH "${json_content}")
+    foreach(v IN LISTS "checkExistsVarNames")
+        if(NOT EXISTS "${_${v}}")
+            message(FATAL_ERROR "Not exists ${v}: '${_${v}}'")
+        endif()
+    endforeach()
+
+    set("settings.python.defaultInterpreterPath" "${_TEST_PYTHON_COMMAND}")
+    set("test.log-level" "${_TEST_LOG_LEVEL}")
+    set("test.log-format" "${_TEST_LOG_FORMAT}")
+    set("test.log-date-format" "${_TEST_LOG_DATE_FORMAT}")
+    set("test.log-file" "${_TEST_LOG_FILE}")
+    set("test.junit-file" "${_TEST_JUNIT_FILE}")
+    cmake_path(RELATIVE_PATH "_TEST_PY_DIR" BASE_DIRECTORY "${_SOURCE_DIR}" OUTPUT_VARIABLE "test.dir-rel")
+
+    set(pytestCollectItems "${test.dir-rel}")
+    file(READ "${_LAUNCH_TEST_LIST_FILE}" jsonContent)
+    string(JSON "maxIndex" LENGTH "${jsonContent}")
     if("${maxIndex}" GREATER "0")
         math(EXPR maxIndex "${maxIndex} - 1")
         foreach(i RANGE "0" "${maxIndex}")
-            string(JSON v GET "${json_content}" "${i}" "nodeid")
-            list(APPEND "pytestCollectItems" "${testPyDir}/${v}")
+            string(JSON v GET "${jsonContent}" "${i}" "nodeid")
+            list(APPEND "pytestCollectItems" "${test.dir-rel}/${v}")
         endforeach()
     endif()
-    string(JOIN "\",\n                \"" "pytestCollectItems" ${pytestCollectItems})
-    message(STATUS "pytestCollectItems: '${pytestCollectItems}'")
 
-    file(REMOVE "${projectBinaryDir}/test/tests.json")
+    list(GET "pytestCollectItems" "0" "test.default-entry")
+    string(JOIN "\",\n                \"" "test.entries" ${pytestCollectItems})
 
-    set("launch.inputs.pytest.collect.items" "${pytestCollectItems}")
-
-    message(STATUS "==================================================")
-    message(STATUS "substitutions")
-    message(STATUS "==================================================")
+    message(STATUS "substitutions:")
     message(STATUS "'@settings.python.defaultInterpreterPath@': '${settings.python.defaultInterpreterPath}'")
-    message(STATUS "'@launch.configurations.main.python@': '${launch.configurations.main.python}'")
-    message(STATUS "'@launch.configurations.test.python@': '${launch.configurations.test.python}'")
-    message(STATUS "'@launch.configurations.pytest.log-level@': '${launch.configurations.pytest.log-level}'")
-    message(STATUS "'@launch.configurations.pytest.log-format@': '${launch.configurations.pytest.log-format}'")
-    message(STATUS "'@launch.configurations.pytest.log-date-format@': '${launch.configurations.pytest.log-date-format}'")
-    message(STATUS "'@launch.configurations.pytest.log-file@': '${launch.configurations.pytest.log-file}'")
-    message(STATUS "'@launch.configurations.pytest.junit-xml@': '${launch.configurations.pytest.junit-xml}'")
-    message(STATUS "'@launch.inputs.default@': '${launch.inputs.default}'")
-    message(STATUS "'@launch.inputs.pytest.collect.items@': '${launch.inputs.pytest.collect.items}'")
-    message(STATUS "==================================================")
+    message(STATUS "'@test.log-level@': '${test.log-level}'")
+    message(STATUS "'@test.log-format@': '${test.log-format}'")
+    message(STATUS "'@test.log-date-format@': '${test.log-date-format}'")
+    message(STATUS "'@test.log-file@': '${test.log-file}'")
+    message(STATUS "'@test.junit-file@': '${test.junit-file}'")
+    message(STATUS "'@test.dir-rel@': '${test.dir-rel}'")
+    message(STATUS "'@test.default-entry@': '${test.default-entry}'")
+    message(STATUS "'@test.entries@': '${test.entries}'")
 
-    if("${settingsGenerate}" AND (NOT EXISTS "${settingsFile}" OR "${settingsFileOverwrite}"))
-        message(STATUS "generate: '${settingsFile}' ...")
-        configure_file("${settingsTemplateFile}" "${settingsFile}" @ONLY NEWLINE_STYLE "LF")
-        message(STATUS "generate: '${settingsFile}' ... done")
+    if("${_SETTINGS_GENERATE}" AND (NOT EXISTS "${_SETTINGS_FILE}" OR "${_SETTINGS_FILE_OVERWRITE}"))
+        message(STATUS "generate: '${_SETTINGS_FILE}' ...")
+        configure_file("${_SETTINGS_TEMPLATE_FILE}" "${_SETTINGS_FILE}" @ONLY)
+        message(STATUS "generate: '${_SETTINGS_FILE}' ... done")
     endif()
 
-    if("${launchGenerate}" AND (NOT EXISTS "${launchFile}" OR "${launchFileOverwrite}"))
-        message(STATUS "generate: '${launchFile}' ...")
-        configure_file("${launchTemplateFile}" "${launchFile}" @ONLY NEWLINE_STYLE "LF")
-        message(STATUS "generate: '${launchFile}' ... done")
+    if("${_LAUNCH_GENERATE}" AND (NOT EXISTS "${_LAUNCH_FILE}" OR "${_LAUNCH_FILE_OVERWRITE}"))
+        message(STATUS "generate: '${_LAUNCH_FILE}' ...")
+        configure_file("${_LAUNCH_TEMPLATE_FILE}" "${_LAUNCH_FILE}" @ONLY)
+        message(STATUS "generate: '${_LAUNCH_FILE}' ... done")
     endif()
 endfunction()
 

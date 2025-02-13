@@ -10,10 +10,9 @@ from application import Application
 
 if __name__ == "__main__":
     arguments: list[str] = None
-    if getattr(sys, "frozen") and hasattr(sys, "_MEIPASS"):
+    if hasattr(sys, "frozen") and getattr(sys, "frozen") and hasattr(sys, "_MEIPASS"):
         arguments = sys.argv
     else:
         arguments = sys.argv[1:]
-    application: Application = Application()
-    exit_code: int = application.run(arguments)
+    exit_code: int = Application.run(arguments)
     sys.exit(exit_code)

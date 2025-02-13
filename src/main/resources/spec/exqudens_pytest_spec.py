@@ -14,7 +14,7 @@ config: dict[str, any] = {
     "upx": True
 }
 analysis: Analysis = Analysis(
-    scripts=["src/main/py/main.py"],
+    scripts=["src/main/py/exqudens/pytest/__init__.py"],
     pathex=["src/main/py"],
     datas=[],
     runtime_hooks=[],

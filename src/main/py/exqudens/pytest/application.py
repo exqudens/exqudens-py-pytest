@@ -11,7 +11,8 @@ class Application:
     Application class.
     """
 
-    def run(self, arguments: list[str]) -> int:
+    @classmethod
+    def run(cls, arguments: list[str]) -> int:
         """
         run method.
         """
